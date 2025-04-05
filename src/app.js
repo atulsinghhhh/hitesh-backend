@@ -1,12 +1,18 @@
-import express from 'express';
+import express from "express";
+import cookieParser from "cookie-parser";
+import cors from "cors";
 
-const app = express();
-const port = 8000;
+const app=express();
 
-app.get('/', (req, res) => {
-    res.send('Hello World');
-});
+app.use(cors({
+    origin: process.env.CORS_ORIGIN,
+    credentials: true
+}))
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+// where we data comes from
+app.use(express.json({limit: "15kb"}));
+app.use(express.urlencoded({extended: true, limit: "15kb"}));
+app.use(express.static("public"));
+app.use(cookieParser());
+
+export {app};
