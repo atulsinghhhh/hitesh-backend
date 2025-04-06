@@ -38,3 +38,32 @@ Api error how to handle
 ApiResponse-: for handle the response 
 
 in an async function you have to manually catch that error and pass it to the next() function to be handled by express error middleware
+
+
+<!-- models -->
+
+
+# data modelling
+user models:-
+
+    bcrypt-: hash of your password
+    jwt-: create to token
+
+hooks:
+    pre-: if we saved the data it runs before it 
+custom methods
+
+    jwt:- wearer token, is a compact, URL-safe way of securely transmitting information between parties as a JSON object.
+    jwt.sign(payload,secertPrivateKey,[options,callback])
+
+    options: 
+    expriresIn:- expreesed in seconds or a string describing a time span
+
+    notbefore:-expreesed in seconds or a string describing a time span
+
+
+
+    Asynchronous-: if a callback is suppiled, the callback is called with the error
+    synchronous-: returns the jsonwebtoken as string
+
+video models
