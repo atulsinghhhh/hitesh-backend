@@ -67,3 +67,18 @@ custom methods
     synchronous-: returns the jsonwebtoken as string
 
 video models
+
+
+# file handling in backend
+mostly we are third service of file handling
+
+services-: cloudinary
+package -: express file upload and multer
+
+user se file upload krenge with help of multer sdk
+user se local storage then local storage to cloudinary
+directly upload bhi kr skte hai
+
+unlike -: unlink the file 
+
+how to work multer 
