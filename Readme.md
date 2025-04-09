@@ -82,3 +82,6 @@ directly upload bhi kr skte hai
 unlike -: unlink the file 
 
 how to work multer 
+
+
+<!-- controllers -->
