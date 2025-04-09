@@ -83,5 +83,9 @@ unlike -: unlink the file
 
 how to work multer 
 
+<!-- console log -->
+req.body
+req.files
+
 
 <!-- controllers -->
