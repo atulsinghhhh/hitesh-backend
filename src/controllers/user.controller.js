@@ -86,4 +86,114 @@ const registerUser = asyncHandler(async (req, res) => {
     )
 })
 
-export {registerUser}
+const generateAccessAndRefreshTokens= async(userId)=>{
+    try {
+        const user=await User.findById(userId);
+
+        const accessToken=user.generateAccessToken();
+        const refreshToken=user.generateRefreshToken();
+
+       user.refreshToken=refreshToken; // save refresh token in db
+       await user.save({validateBeforeSave:false});
+
+       return {accessToken,refreshToken};  
+        
+    } catch (error) {
+        throw new ApiError(500,"Something went wrong while generating refresh and acces token")
+        
+    }
+}
+const loginUser=asyncHandler( async (req,res)=>{
+    /* email or username  password req.body
+    check if user exists
+    check if password is correct 
+    generate access token and refresh token
+    send cookie
+    return response*/
+
+    const {email,username,password}=req.body;
+    if(!username || !email){
+        throw new ApiError(400,"Username or email is required");
+    }
+
+    const user=await User.findOne({
+        $or:[ // we write object inside the array
+            {username},
+            {email}
+        ]
+    })
+
+    if(!user){
+        throw new ApiError(404,"User not found with this username or email");
+    }
+
+    const isPasswordValid=await user.isPasswordCorrect(password);
+    if(!isPasswordValid){
+        throw new ApiError(400,"Invalid password");
+    }
+
+    const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(user._id);
+
+    const userDetails=await User.findById(user._id).select("-password -refreshToken");
+
+    const options={
+        httpsOnly: true,
+        secure: true
+    }
+    return res.status(200)
+    .cookie("accessToken",accessToken,options)
+    .cookie("refreshToken",refreshToken,options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user: userDetails,accessToken,refreshToken
+            },
+            "User logged in successfully"
+        )
+    )
+})
+
+const logoutUser=asyncHandler(async(req,res)=>{
+    /*
+    get user id from req
+    find user in db
+    refresh token to null
+    save user
+    clear cookie
+    return response
+    */
+    User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set:{
+                refreshToken:undefined
+            },
+            new:true
+
+        }
+
+    )
+
+    const options={
+        httpsOnly: true,
+        secure: true
+    }
+    return res.status(200)
+    .clearCookie("accessToken",options)
+    .clearCookie("refreshToken",options)
+    .json(
+        new ApiResponse(
+            200,
+            null,"User logged out successfully"
+        )
+    )
+
+    
+})
+
+export {
+    registerUser,
+    loginUser,
+    logoutUser
+}
