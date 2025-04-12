@@ -3,6 +3,8 @@ import {ApiError} from "../utils/ApiError.js";
 import {User} from "../models/user.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
+import Jwt from "jsonwebtoken";
+
 
 const registerUser = asyncHandler(async (req, res) => {
     /*
@@ -112,7 +114,7 @@ const loginUser=asyncHandler( async (req,res)=>{
     return response*/
 
     const {email,username,password}=req.body;
-    if(!username || !email){
+    if(!username && !email){
         throw new ApiError(400,"Username or email is required");
     }
 
@@ -191,9 +193,59 @@ const logoutUser=asyncHandler(async(req,res)=>{
 
     
 })
+const refreshAccessToken=asyncHandler(async(req,res)=>{
+    // encoded refresh token
+    const refreshToken=req.cookies.refreshToken || req.body.refreshToken ;
+
+    if(!refreshToken){
+        throw new ApiError(401,"Refresh token is required");
+    }
+
+    try {
+        const decoded=Jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET);
+    
+        if(!decoded){
+            throw new ApiError(401,"Invalid refresh token");
+        }
+    
+        const user=await User.findById(decoded._id);
+    
+        if(!user){
+            throw new ApiError(401,"User not found");
+        }
+    
+        if(dedcoded !== user?.refreshToken){
+            throw new ApiError(401,"Refresh token is expired or used") 
+        }
+    
+        const options={
+            httpsOnly: true,
+            secure: true
+        }
+    
+        const[accessToken,refreshTokens]=await generateAccessAndRefreshTokens(user._id);
+    
+        return res.status(200)
+        .cookie("accessToken",accessToken,options)
+        .cookie("refreshToken",refreshTokens,options)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    accessToken,
+                    refreshToken:refreshTokens
+                },
+                "Access token refreshed successfully"
+            )
+        )
+    } catch (error) {
+        throw new ApiError(500,"Something went wrong while refreshing access token");
+    }
+})
 
 export {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    refreshAccessToken
 }

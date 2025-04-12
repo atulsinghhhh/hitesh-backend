@@ -71,7 +71,9 @@ video models
 # token
 refresh token :- long live,saved user and database one endpoint ko hit kr do if user and database match
 
-access token-: short live,access any authoziation 
+access token-: short live,access any authoziation kahi bhi save nhi karte hai 
+
+
 
 
 # file handling in backend
