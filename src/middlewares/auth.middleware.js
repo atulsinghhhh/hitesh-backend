@@ -19,9 +19,7 @@ export const verfiyjwt=asyncHandler(async(req,res,next)=>{
             if(!user){
                 throw new ApiError(401,"Invalid access token");
             }
-        
-            // todo discuss about frontend
-        
+            
             req.user=user;
             next();
     } catch (error) {
