@@ -3,7 +3,7 @@ import {ApiError} from "../utils/ApiError.js";
 import {User} from "../models/user.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
-import Jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -213,7 +213,7 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
     }
 
     try {
-        const decoded=Jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET);
+        const decoded=jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET);
     
         if(!decoded){
             throw new ApiError(401,"Invalid refresh token");
@@ -361,6 +361,8 @@ const updateUserAvatar=asyncHandler(async(req,res)=>{
 
     const avatar= await uploadOnCloudinary(avatarLocalPath);
 
+    // todo delete old avatar
+
     if(!avatar.url){
         throw new ApiError(400,"Failed to upload avatar on cloudinary")
     }
@@ -374,6 +376,7 @@ const updateUserAvatar=asyncHandler(async(req,res)=>{
         },
         {new:true}
     ).select("-password")
+
 
     return res.status(200)
     .json(
@@ -427,6 +430,83 @@ const updateUserCoverImage=asyncHandler(async(req,res)=>{
         )
     )
 })
+const getUserChannelProfile=asyncHandler(async(req,res)=>{
+
+    const {username}=req.params
+
+    if(!username?.trim()){
+        throw new ApiError(400,"Username is required")
+    }
+    const channel=await User.aggregate([
+        {
+            $match:{
+                username:username?.toLowerCase(),
+            }
+        },
+        {
+            $lookup:{
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "channel",
+                as : "subscribers"
+            }
+        },
+        {
+            $lookup:{
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "Subscriber",
+                as : "sudscribedTo"
+            }
+        },
+        {
+            $addFields:{
+                subscribersCount:{
+                    $size:"$subscribers"
+                },
+                channelSubscribers:{
+                    $size: "$sudscribedTo"
+                },
+                isSubscribed: {
+                    $cond: {
+                        if: {
+                            $in: [req.user?._id, "$subscribers.Subscriber"]
+                        },
+                        then: true,
+                        else: false
+                    }
+                }
+            }
+        },
+        {
+            $project:{
+                fullname:1,
+                username:1,
+                subscribersCount:1,
+                channelSubscribers:1,
+                isSubscribed:1,
+                avatar:1,
+                coverImage:1,
+                email:1
+            }
+        }
+    ])
+
+    if(!channel?.length){
+        throw new ApiError(404,"Channel not found")
+    }
+    
+    return res.status(200)
+    .json(
+        ApiResponse(
+            200,
+            channel[0],
+            "Channel profile fetched successfully"
+        )
+    )
+})
+
+
 
 export {
     registerUser,
@@ -437,5 +517,6 @@ export {
     getCurrentUser,
     updateCurrentDetails,
     updateUserAvatar,
-    updateUserCoverImage
+    updateUserCoverImage,
+    getUserChannelProfile
 }
