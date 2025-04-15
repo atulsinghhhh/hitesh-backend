@@ -6,7 +6,7 @@ import {ApiResponse} from "../utils/ApiResponse.js"
 import jwt from "jsonwebtoken";
 
 
-const registerUser = asyncHandler(async (req, res) => {
+const registerUser=asyncHandler(async (req, res) => {
     /*
     get user details from req.body
     validate user details
@@ -387,7 +387,6 @@ const updateUserAvatar=asyncHandler(async(req,res)=>{
         )
     )
 })
-
 
 const updateUserCoverImage=asyncHandler(async(req,res)=>{
     /*
