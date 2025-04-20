@@ -170,7 +170,7 @@ const logoutUser=asyncHandler(async(req,res)=>{
         req.user._id,
         {
             $set:{
-                refreshToken:undefined
+                refreshToken:1
             },
             new:true
 
@@ -207,7 +207,6 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
     return response
     */
     const refreshToken=req.cookies.refreshToken || req.body.refreshToken ;
-
     if(!refreshToken){
         throw new ApiError(401,"Refresh token is required");
     }
@@ -215,9 +214,9 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
     try {
         const decoded=jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET);
     
-        if(!decoded){
-            throw new ApiError(401,"Invalid refresh token");
-        }
+        // if(!decoded){
+        //     throw new ApiError(401,"Invalid refresh token");
+        // }
     
         const user=await User.findById(decoded._id);
     
@@ -225,21 +224,25 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
             throw new ApiError(401,"User not found");
         }
 
-        // if (refreshToken !== user?.refreshToken) {
-        //     throw new ApiError(401, "Refresh token is expired or used");
-        // }
+        if (refreshToken !== user?.refreshToken) {
+            throw new ApiError(401, "Refresh token is expired or used");
+        }
         
     
-        if(dedcoded !== user?.refreshToken){
-            throw new ApiError(401,"Refresh token is expired or used") 
-        }
+        // if(decoded !== user?.refreshToken){
+        //     throw new ApiError(401,"Refresh token is expired or used") 
+        // }
     
         const options={
             httpsOnly: true,
             secure: true
         }
     
-        const[accessToken,refreshTokens]=await generateAccessAndRefreshTokens(user._id);
+        const {accessToken,refreshTokens}=await generateAccessAndRefreshTokens(user._id);
+
+        // user.refreshToken = refreshTokens;
+        // await user.save();
+
     
         return res.status(200)
         .cookie("accessToken",accessToken,options)
@@ -511,7 +514,6 @@ const getWatchHistory=asyncHandler(async(req,res)=>{
         {
             $match:{
                 _id: new mongoose.Types.ObjectId(req.user?._id) // create a new object id from the user id
-
             }
         },
         {
@@ -545,7 +547,6 @@ const getWatchHistory=asyncHandler(async(req,res)=>{
                             }
                         }
                     }
-
                 ]
             }
         },
