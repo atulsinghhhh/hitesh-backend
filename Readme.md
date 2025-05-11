@@ -5,8 +5,8 @@ if error comes in your code then read the error not directly goes to chat gpt or
 # database connecting
 mongoodb
 
-if we talk to database always problems occur to that rap try and catch 
-and database is another continents so rap async await
+if we talk to database always problems occur to that wrap try and catch 
+and database is another continents so wrap async await
 
 async methods jb bhi complete hota hai toh woh ek promise return karta hai
 
@@ -106,3 +106,6 @@ logout user ??
 
 
 
+## video controllers
+getall videos-> query parameters of an incoming http request
+phele mujhe sare video ka access chaihye fir 
